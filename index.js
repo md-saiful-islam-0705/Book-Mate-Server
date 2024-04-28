@@ -36,6 +36,15 @@ async function run() {
 
 async function defineRoutes(client) {
   const spotsCollection = client.db("spotsDB").collection("spots");
+  const countriesCollection = client.db("spotsDB").collection("countries");
+
+  // Route to fetch all countries
+  app.get("/countries", async (req, res) => {
+    const cursor = countriesCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+  });
+
 
   // Route to fetch all tourist spots
   app.get("/spots", async (req, res) => {
@@ -91,6 +100,21 @@ async function defineRoutes(client) {
     const query = { _id: new ObjectId(spotId) };
     const result = await spotsCollection.deleteOne(query);
     res.send(result);
+  });
+
+  // route for updating a user spot
+  app.put("/user-spots/:id", async (req, res) => {
+    const spotId = req.params.id;
+    const updatedSpot = req.body;
+
+    const query = { _id: new ObjectId(spotId) };
+    const updateResult = await spotsCollection.updateOne(query, {
+      $set: updatedSpot,
+    });
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ error: "User spot not found" });
+    }
+    res.json({ message: "User spot updated successfully" });
   });
 
   // Send a ping to confirm a successful connection
