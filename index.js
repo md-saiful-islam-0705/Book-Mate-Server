@@ -82,6 +82,39 @@ async function defineRoutes(client) {
       res.status(500).json({ error });
     }
   });
+  // Route to fetch spots by country
+  // app.get("/spots/:countryName", async (req, res) => {
+  //   try {
+  //     const countryName = req.params.countryName;
+  //     const query = { country_Name: countryName }; // Assuming 'countryName' matches the field name in your database
+  //     const spot = await spotsCollection.findOne(query);
+  //     if (!spot) {
+  //       return res.status(404).json({ error: "Spot not found" });
+  //     }
+  //     res.json(spot);
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json({ error: "Failed to fetch spot data" });
+  //   }
+  // });
+  
+
+  
+  
+
+  // Route to fetch tourist spots by country
+// app.get("/spots/:countryName", async (req, res) => {
+//   try {
+//     const countryName = req.params.countryName;
+//     const cursor = spotsCollection.find({ country_Name: countryName });
+//     const result = await cursor.toArray();
+//     res.send(result);
+//   } catch (error) {
+//     console.error("Error fetching tourist spots:", error);
+//     res.status(500).json({ error: "Failed to fetch tourist spots" });
+//   }
+// });
+
 
   // Route to fetch user's tourist spots
   app.get("/user-spots", async (req, res) => {
