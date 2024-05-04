@@ -24,8 +24,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-      
-
     const spotsCollection = client.db("spotsDB").collection("spots");
     const countriesCollection = client.db("spotsDB").collection("countries");
 
@@ -59,13 +57,12 @@ async function run() {
     });
 
     // Route to fetch tourist spots by country
-    // app.get("/spots/:countryName", async (req, res) => {
-    
-    //     const countryName = req.params.countryName;
-    //     const cursor = spotsCollection.find({ country_Name: countryName });
-    //     const result = await cursor.toArray();
-    //     res.send(result);
-    // });
+    app.get("/spots/:countryName", async (req, res) => {
+      const countryName = req.params.countryName;
+      const cursor = spotsCollection.find({ country_Name: countryName });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // Route to fetch user's tourist spots
     app.get("/user-spots", async (req, res) => {
@@ -111,6 +108,6 @@ run().catch(console.dir);
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
 });
-app.get('/', (req, res) => {
-  res.send(' server is running')
-})
+app.get("/", (req, res) => {
+  res.send(" server is running");
+});
