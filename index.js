@@ -8,8 +8,6 @@ const port = process.env.PORT || 3001;
 
 // Middleware
 // {origin: ""}
-//bookmate
-//95G5KhCOO8zTr2E8
 app.use(cors());
 app.use(express.json());
 
