@@ -4,10 +4,12 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Middleware
-// {origin: "https://journey-junction-2024.web.app/"}
+// {origin: ""}
+//bookmate
+//95G5KhCOO8zTr2E8
 app.use(cors());
 app.use(express.json());
 
@@ -24,77 +26,77 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    const spotsCollection = client.db("spotsDB").collection("spots");
-    const countriesCollection = client.db("spotsDB").collection("countries");
+    const categoryCollection = client.db("booksDB").collection("booksCategory");
+    
 
-    // Route to fetch all countries
-    app.get("/countries", async (req, res) => {
-      const cursor = countriesCollection.find();
+    // Route to fetch all books category
+    app.get("/booksCategory", async (req, res) => {
+      const cursor = categoryCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
     // Route to fetch all tourist spots
-    app.get("/spots", async (req, res) => {
-      const cursor = spotsCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    // app.get("/spots", async (req, res) => {
+    //   const cursor = spotsCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
-    // Route to add a new tourist spot
-    app.post("/spots", async (req, res) => {
-      const newSpot = req.body;
-      const result = await spotsCollection.insertOne(newSpot);
-      res.send(result);
-    });
+    // // Route to add a new tourist spot
+    // app.post("/spots", async (req, res) => {
+    //   const newSpot = req.body;
+    //   const result = await spotsCollection.insertOne(newSpot);
+    //   res.send(result);
+    // });
 
-    // Route to fetch details of a specific tourist spot
-    app.get("/spots/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const spot = await spotsCollection.findOne(query);
-      res.json(spot);
-    });
+    // // Route to fetch details of a specific tourist spot
+    // app.get("/spots/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const spot = await spotsCollection.findOne(query);
+    //   res.json(spot);
+    // });
 
-    // Route to fetch tourist spots by country
-    app.get("/spots/:countryName", async (req, res) => {
-      const countryName = req.params.countryName;
-      const cursor = spotsCollection.find({ country_Name: countryName });
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    // // Route to fetch tourist spots by country
+    // app.get("/spots/:countryName", async (req, res) => {
+    //   const countryName = req.params.countryName;
+    //   const cursor = spotsCollection.find({ country_Name: countryName });
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
-    // Route to fetch user's tourist spots
-    app.get("/user-spots", async (req, res) => {
-      const userEmail = req.query.userEmail;
-      const userSpots = await spotsCollection.find({ userEmail }).toArray();
-      res.json(userSpots);
-    });
-    // Delete
-    app.delete("/user-spots/:id", async (req, res) => {
-      const spotId = req.params.id;
-      const query = { _id: new ObjectId(spotId) };
-      const result = await spotsCollection.deleteOne(query);
-      res.send(result);
-    });
+    // // Route to fetch user's tourist spots
+    // app.get("/user-spots", async (req, res) => {
+    //   const userEmail = req.query.userEmail;
+    //   const userSpots = await spotsCollection.find({ userEmail }).toArray();
+    //   res.json(userSpots);
+    // });
+    // // Delete
+    // app.delete("/user-spots/:id", async (req, res) => {
+    //   const spotId = req.params.id;
+    //   const query = { _id: new ObjectId(spotId) };
+    //   const result = await spotsCollection.deleteOne(query);
+    //   res.send(result);
+    // });
 
-    // route for updating a user spot
-    app.put("/user-spots/:id", async (req, res) => {
-      const spotId = req.params.id;
-      const updatedSpot = req.body;
+    // // route for updating a user spot
+    // app.put("/user-spots/:id", async (req, res) => {
+    //   const spotId = req.params.id;
+    //   const updatedSpot = req.body;
 
-      const query = { _id: new ObjectId(spotId) };
-      const updateResult = await spotsCollection.updateOne(query, {
-        $set: updatedSpot,
-      });
-      if (updateResult.matchedCount === 0) {
-        return res.status(404).json({ error: "User spot not found" });
-      }
-      res.json({ message: "User spot updated successfully" });
-    });
+    //   const query = { _id: new ObjectId(spotId) };
+    //   const updateResult = await spotsCollection.updateOne(query, {
+    //     $set: updatedSpot,
+    //   });
+    //   if (updateResult.matchedCount === 0) {
+    //     return res.status(404).json({ error: "User spot not found" });
+    //   }
+    //   res.json({ message: "User spot updated successfully" });
+    // });
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
+    await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
