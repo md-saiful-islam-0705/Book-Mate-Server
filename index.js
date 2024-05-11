@@ -7,8 +7,12 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Middleware
-// {origin: ""}
-app.use(cors());
+const corsOptions = {
+  origin: ["http://localhost:5173"],
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+app.use(cors({ corsOptions }));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.gpuomtl.mongodb.net`;
@@ -24,8 +28,9 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const booksCollection = client.db("booksDB").collection("books");
     const categoryCollection = client.db("booksDB").collection("booksCategory");
-    
+    const popularBooksCollection = client.db("booksDB").collection("popularBooks");
 
     // Route to fetch all books category
     app.get("/booksCategory", async (req, res) => {
@@ -33,18 +38,36 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // Route to fetch Popular books
+    app.get("/popularBooks", async (req, res) => {
+      const cursor = popularBooksCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // Route to fetch books
+    app.get("/books", async (req, res) => {
+      const cursor = booksCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // Route to add a new book
+    app.post("/books", async (req, res) => {
+      const newBook = req.body;
+      const result = await booksCollection.insertOne(newBook);
+      res.send(result);
+    });
+    // // Route to fetch of specific book
+    app.get("/books/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const book = await booksCollection.findOne(query);
+      res.json(book);
+    });
 
     // Route to fetch all tourist spots
     // app.get("/spots", async (req, res) => {
     //   const cursor = spotsCollection.find();
     //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-
-    // // Route to add a new tourist spot
-    // app.post("/spots", async (req, res) => {
-    //   const newSpot = req.body;
-    //   const result = await spotsCollection.insertOne(newSpot);
     //   res.send(result);
     // });
 
@@ -78,20 +101,20 @@ async function run() {
     //   res.send(result);
     // });
 
-    // // route for updating a user spot
-    // app.put("/user-spots/:id", async (req, res) => {
-    //   const spotId = req.params.id;
-    //   const updatedSpot = req.body;
+    // // route for updating a user's book
+    app.put("/books/:id", async (req, res) => {
+      const bookId = req.params.id;
+      const updatedBook = req.body;
 
-    //   const query = { _id: new ObjectId(spotId) };
-    //   const updateResult = await spotsCollection.updateOne(query, {
-    //     $set: updatedSpot,
-    //   });
-    //   if (updateResult.matchedCount === 0) {
-    //     return res.status(404).json({ error: "User spot not found" });
-    //   }
-    //   res.json({ message: "User spot updated successfully" });
-    // });
+      const query = { _id: new ObjectId(bookId) };
+      const updateResult = await booksCollection.updateOne(query, {
+        $set: updatedBook,
+      });
+      if (updateResult.matchedCount === 0) {
+        return res.status(404).json({ error: "User's book not found" });
+      }
+      res.json({ message: "User's book updated successfully" });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
