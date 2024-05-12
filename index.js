@@ -30,7 +30,9 @@ async function run() {
   try {
     const booksCollection = client.db("booksDB").collection("books");
     const categoryCollection = client.db("booksDB").collection("booksCategory");
-    const popularBooksCollection = client.db("booksDB").collection("popularBooks");
+    const popularBooksCollection = client
+      .db("booksDB")
+      .collection("popularBooks");
 
     // Route to fetch all books category
     app.get("/booksCategory", async (req, res) => {
@@ -38,6 +40,18 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // Route to fetch books by category
+    app.get("/books", async (req, res) => {
+      const { category } = req.query;
+      const filter = category ? { category } : {}; 
+      const books = await booksCollection.find(filter).toArray();
+      res.json(books);
+    });
+    
+    
+    
+
+
     // Route to fetch Popular books
     app.get("/popularBooks", async (req, res) => {
       const cursor = popularBooksCollection.find();
