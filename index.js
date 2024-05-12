@@ -77,6 +77,13 @@ async function run() {
       const book = await booksCollection.findOne(query);
       res.json(book);
     });
+    // Route to fetch details of a specific Book
+    app.get("/books/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const book = await booksCollection.findOne(query);
+      res.json(book);
+    });
 
     // Route to fetch all tourist spots
     // app.get("/spots", async (req, res) => {
