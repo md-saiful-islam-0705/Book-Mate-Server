@@ -8,7 +8,7 @@ const port = process.env.PORT || 3001;
 
 // Middleware
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: ["http://localhost:5173","http://localhost:5174", 'https://book-mate-2024.web.app'],
   credentials: true,
   optionSuccessStatus: 200,
 };
