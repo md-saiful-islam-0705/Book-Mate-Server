@@ -12,7 +12,7 @@ const corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
-app.use(cors({ corsOptions }));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.gpuomtl.mongodb.net`;
@@ -34,6 +34,10 @@ async function run() {
       .db("booksDB")
       .collection("popularBooks");
 
+    const borrowedBooksCollection = client
+      .db("booksDB")
+      .collection("borrowedBooks");
+
     // Route to fetch all books category
     app.get("/booksCategory", async (req, res) => {
       const cursor = categoryCollection.find();
@@ -43,14 +47,10 @@ async function run() {
     // Route to fetch books by category
     app.get("/books", async (req, res) => {
       const { category } = req.query;
-      const filter = category ? { category } : {}; 
+      const filter = category ? { category } : {};
       const books = await booksCollection.find(filter).toArray();
       res.json(books);
     });
-    
-    
-    
-
 
     // Route to fetch Popular books
     app.get("/popularBooks", async (req, res) => {
@@ -85,42 +85,73 @@ async function run() {
       res.json(book);
     });
 
-    // Route to fetch all tourist spots
-    // app.get("/spots", async (req, res) => {
-    //   const cursor = spotsCollection.find();
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
+    // Route to borrow a book
+    app.post("/borrowedBooks", async (req, res) => {
+      const {
+        bookId,
+        userEmail,
+        borrowedDate,
+        returnDate,
+        bookName,
+        bookImage,
+        bookCategory,
+      } = req.body;
+      const book = await booksCollection.findOne({ _id: new ObjectId(bookId) });
 
-    // // Route to fetch details of a specific tourist spot
-    // app.get("/spots/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const spot = await spotsCollection.findOne(query);
-    //   res.json(spot);
-    // });
+      // Update book quantity
+      const updatedQuantity = book.quantity - 1;
+      const updateResult = await booksCollection.updateOne(
+        { _id: new ObjectId(bookId) },
+        { $set: { quantity: updatedQuantity } }
+      );
+      console.log(updateResult);
 
-    // // Route to fetch tourist spots by country
-    // app.get("/spots/:countryName", async (req, res) => {
-    //   const countryName = req.params.countryName;
-    //   const cursor = spotsCollection.find({ country_Name: countryName });
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
+      // Add book to borrowedBooks collection
+      const borrowedBook = {
+        bookId,
+        userEmail,
+        borrowedDate,
+        returnDate,
+        bookName,
+        bookImage,
+        bookCategory,
+      };
+      const result = await borrowedBooksCollection.insertOne(borrowedBook);
+      res.json(result);
+    });
 
-    // // Route to fetch user's tourist spots
-    // app.get("/user-spots", async (req, res) => {
-    //   const userEmail = req.query.userEmail;
-    //   const userSpots = await spotsCollection.find({ userEmail }).toArray();
-    //   res.json(userSpots);
-    // });
-    // // Delete
-    // app.delete("/user-spots/:id", async (req, res) => {
-    //   const spotId = req.params.id;
-    //   const query = { _id: new ObjectId(spotId) };
-    //   const result = await spotsCollection.deleteOne(query);
-    //   res.send(result);
-    // });
+    // Route to fetch borrowed books by user's email
+    app.get("/borrowedBooks", async (req, res) => {
+      const { userEmail } = req.query;
+      const query = { userEmail };
+      const borrowedBooks = await borrowedBooksCollection.find(query).toArray();
+      res.json(borrowedBooks);
+    });
+
+    // Route to return a borrowed book
+    app.put("/books/return/:bookId", async (req, res) => {
+      const { bookId } = req.params;
+      const borrowedBook = await borrowedBooksCollection.findOne({
+        _id: new ObjectId(bookId),
+      });
+      // Update the quantity
+      const updateResult = await booksCollection.updateOne(
+        { _id: new ObjectId(borrowedBook.bookId) },
+        { $inc: { quantity: 1 } }
+      );
+      console.log(updateResult);
+      await borrowedBooksCollection.deleteOne({ _id: new ObjectId(bookId) });
+
+      res.status(200).json();
+    });
+
+    // Route to fetch borrowed books by user's email
+    app.get("/borrowedBooks", async (req, res) => {
+      const { userEmail } = req.query;
+      const query = { userEmail, status: { $ne: "returned" } };
+      const borrowedBooks = await borrowedBooksCollection.find(query).toArray();
+      res.json(borrowedBooks);
+    });
 
     // // route for updating a user's book
     app.put("/books/:id", async (req, res) => {
@@ -131,10 +162,8 @@ async function run() {
       const updateResult = await booksCollection.updateOne(query, {
         $set: updatedBook,
       });
-      if (updateResult.matchedCount === 0) {
-        return res.status(404).json({ error: "User's book not found" });
-      }
-      res.json({ message: "User's book updated successfully" });
+      console.log(updateResult);
+      res.json();
     });
 
     // Send a ping to confirm a successful connection
